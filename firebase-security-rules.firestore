@@ -1,0 +1,51 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Contacts collection - allow creation but restrict reads
+    match /contacts/{contactId} {
+      // Allow anyone to create a contact submission (for form submissions)
+      allow create: if request.resource.data.name != null 
+                   && request.resource.data.email != null
+                   && request.resource.data.message != null
+                   && request.resource.data.name.size() > 1
+                   && request.resource.data.name.size() < 100
+                   && request.resource.data.email.matches('^[^@]+@[^@]+\\.[^@]+$')
+                   && request.resource.data.message.size() > 10
+                   && request.resource.data.message.size() < 1000;
+      
+      // No public reads - only authenticated admin can read
+      allow read: if request.auth != null 
+                && request.auth.token.admin == true;
+      
+      // No updates or deletes allowed
+      allow update, delete: if false;
+    }
+    
+    // Bookings collection - for appointment/booking data
+    match /bookings/{bookingId} {
+      // Allow creation with validation
+      allow create: if request.resource.data.packageId != null
+                   && request.resource.data.date != null
+                   && request.resource.data.startTime != null
+                   && request.resource.data.endTime != null
+                   && request.resource.data.totalPrice != null;
+      
+      // Only authenticated users can read their own bookings
+      allow read: if request.auth != null 
+                && request.auth.uid == resource.data.userId;
+      
+      // Allow updates only by the booking owner
+      allow update: if request.auth != null 
+                  && request.auth.uid == resource.data.userId;
+      
+      // No public deletes
+      allow delete: if false;
+    }
+    
+    // Default deny for all other collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,16 @@
+# Robots.txt for Sanjay's Lightworks
+# https://sanjaylumi.com
+
+User-agent: *
+Allow: /
+
+# Disallow sensitive directories
+Disallow: /reference/
+Disallow: /.env
+Disallow: /firebase-config.js
+
+# Sitemap location
+Sitemap: https://sanjaylumi.com/sitemap.xml
+
+# Crawl-delay (optional, to prevent overloading)
+Crawl-delay: 1
